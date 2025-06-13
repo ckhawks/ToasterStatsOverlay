@@ -13,9 +13,9 @@ namespace ToasterStatsOverlay;
 
 public class StatsOverlay : MonoBehaviour
 {
-    static readonly MethodInfo _extractPacketLossMethod = typeof(UnityTransport)
-        .GetMethod("ExtractPacketLoss",
-            BindingFlags.Instance | BindingFlags.NonPublic);
+    // static readonly MethodInfo _extractPacketLossMethod = typeof(UnityTransport)
+    //     .GetMethod("ExtractPacketLoss",
+    //         BindingFlags.Instance | BindingFlags.NonPublic);
     
     // Field rootVisualElement defined on type UIComponent`1[T] is not a field on the target object which is of type UIHUD.
     static readonly FieldInfo _rootVisualElementField = typeof(UIComponent<UIHUD>)
@@ -41,7 +41,7 @@ public class StatsOverlay : MonoBehaviour
     public float updateInterval = 0.5f;    // FPS refresh
     public float pingInterval   = 0.5f;      // how often to ping
 
-    public int pingWidth = 60;
+    public int pingWidth = 100;
 
     // FPS
     float fpsTimeLeft;
@@ -49,9 +49,9 @@ public class StatsOverlay : MonoBehaviour
     public VisualElement statsContainer;
     public Label fpsLabel;
     public Label pingLabel;
-    public Label lossLabel;
+    // public Label lossLabel;
 
-    public static float packetLossValue;
+    // public static float packetLossValue;
     
     public void Setup()
     {
@@ -86,7 +86,7 @@ public class StatsOverlay : MonoBehaviour
         statsContainer = MakeContainer(rootVisualElement, 16, 10);
         fpsLabel = MakeLabel(statsContainer, "ToasterStatsFPSLabel", 60);
         pingLabel = MakeLabel(statsContainer, "ToasterStatsPingLabel", pingWidth);
-        lossLabel = MakeLabel(statsContainer, "ToasterStatsLossLabel", 90);
+        // lossLabel = MakeLabel(statsContainer, "ToasterStatsLossLabel", 90);
         fpsTimeLeft = updateInterval;
         
         UIChat chat = UIChat.Instance;
@@ -155,14 +155,14 @@ public class StatsOverlay : MonoBehaviour
             if (localPlayer != null)
             {
                 pingLabel.text = $"{GetRtt():0} ms";
-                lossLabel.text = $"{packetLossValue:0}% loss";
+                // lossLabel.text = $"{packetLossValue:0}% loss";
                 pingLabel.style.width = pingWidth;
             }
             else
             {
-                pingLabel.text = $"";
-                pingLabel.style.width = 0;
-                lossLabel.text = $"Not connected";
+                pingLabel.text = $"Not connected";
+                // pingLabel.style.width = 0;
+                // lossLabel.text = $"Not connected";
             }
         }
         
@@ -266,33 +266,33 @@ public class StatsOverlay : MonoBehaviour
     //     }
     // }
     
-    [HarmonyPatch]               // no args here
-    public static class UpdatePacketLossPatch
-    {
-        // 1) Tell Harmony which method to patch
-        static MethodBase TargetMethod()
-        {
-            // look up the internal Unity.Netcode.NetworkMetrics type
-            var nmType = AccessTools.TypeByName("Unity.Netcode.NetworkMetrics");
-            if (nmType == null)
-                throw new Exception("Could not find Unity.Netcode.NetworkMetrics");
-
-            // find the internal UpdatePacketLoss method (instance, non-public)
-            return AccessTools.Method(
-                nmType, 
-                "UpdatePacketLoss", 
-                new[] { typeof(float) }    // your overload selector
-            );
-        }
-
-        // 2) The postfix can only use types you *can* name.
-        //    We’ll capture the updated packetLoss value and maybe log it.
-        static void Postfix(object __instance, float packetLoss)
-        {
-            // __instance is your NetworkMetrics instance (as object)
-            // packetLoss is the value passed into UpdatePacketLoss
-            // UnityEngine.Debug.Log($"[NetStats] packetLoss→ {packetLoss:0.00}");
-            packetLossValue = packetLoss;
-        }
-    }
+    // [HarmonyPatch]               // no args here
+    // public static class UpdatePacketLossPatch
+    // {
+    //     // 1) Tell Harmony which method to patch
+    //     static MethodBase TargetMethod()
+    //     {
+    //         // look up the internal Unity.Netcode.NetworkMetrics type
+    //         var nmType = AccessTools.TypeByName("Unity.Netcode.NetworkMetrics");
+    //         if (nmType == null)
+    //             throw new Exception("Could not find Unity.Netcode.NetworkMetrics");
+    //
+    //         // find the internal UpdatePacketLoss method (instance, non-public)
+    //         return AccessTools.Method(
+    //             nmType, 
+    //             "UpdatePacketLoss", 
+    //             new[] { typeof(float) }    // your overload selector
+    //         );
+    //     }
+    //
+    //     // 2) The postfix can only use types you *can* name.
+    //     //    We’ll capture the updated packetLoss value and maybe log it.
+    //     static void Postfix(object __instance, float packetLoss)
+    //     {
+    //         // __instance is your NetworkMetrics instance (as object)
+    //         // packetLoss is the value passed into UpdatePacketLoss
+    //         // UnityEngine.Debug.Log($"[NetStats] packetLoss→ {packetLoss:0.00}");
+    //         packetLossValue = packetLoss;
+    //     }
+    // }
 }
